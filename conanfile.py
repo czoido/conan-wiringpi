@@ -37,7 +37,7 @@ class WiringpiConan(ConanFile):
     is_raspberry = True
 
     def configure(self):
-        self.is_raspberry = True if "arm" in self.settings.arch else False        
+        self.is_raspberry = True if "arm" in self.settings.arch else False
         del self.settings.compiler.libcxx
         if not self.is_raspberry:
             print("For Windows/Macos the library will be mocked.")
@@ -74,11 +74,17 @@ class WiringpiConan(ConanFile):
 
     def package(self):
         if self.is_raspberry:
-            self.copy("COPYING*", src="wiringPi", dst="licenses", keep_path=False)
+            self.copy("COPYING*",
+                      src="wiringPi",
+                      dst="licenses",
+                      keep_path=False)
             cmake = self._configure_cmake()
             cmake.install()
         else:
-            self.copy("COPYING*", src="wiringPi", dst="licenses", keep_path=False)
+            self.copy("COPYING*",
+                      src="wiringPi",
+                      dst="licenses",
+                      keep_path=False)
             self.copy("*.h", dst="include", src="mock")
             self.copy("*.lib", dst="lib", keep_path=False)
             self.copy("*.dll", dst="bin", keep_path=False)
