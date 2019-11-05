@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from conans import ConanFile, CMake, tools
 from conans.errors import ConanInvalidConfiguration
+import shutil
 
 
 class WiringpiConan(ConanFile):
@@ -14,39 +15,54 @@ class WiringpiConan(ConanFile):
     topics = ("conan", "wiringpi", "gpio", "raspberrypi")
     url = "https://github.com/conan-community/conan-wiringpi"
     settings = "os", "compiler", "build_type", "arch"
-    options = {"shared": [True, False], "fPIC": [True, False],
-               "wpiExtensions": [True, False], "withDevLib": [True, False],
-               "skipHWDetectionRPIModel3": [True, False]}
-    default_options = {"shared": False, "fPIC": True,
-                       "wpiExtensions": False, "withDevLib": True,
-                       "skipHWDetectionRPIModel3": False}
+    options = {
+        "shared": [True, False],
+        "fPIC": [True, False],
+        "wpiExtensions": [True, False],
+        "withDevLib": [True, False],
+        "skipHWDetectionRPIModel3": [True, False]
+    }
+    default_options = {
+        "shared": False,
+        "fPIC": True,
+        "wpiExtensions": False,
+        "withDevLib": True,
+        "skipHWDetectionRPIModel3": False
+    }
     # the library doesn't manage very well other than raspbian so the skipHWDetectionRPIModel3
     # will force using original RPI3 Model B, 1GB RAM
     exports_sources = "CMakeLists.txt", "*.patch"
     exports = "LICENSE"
     generators = "cmake"
+    exports_sources = ["mock/*"]
 
     def configure(self):
         del self.settings.compiler.libcxx
-
         if self.settings.os in ("Windows", "Macos"):
-            raise ConanInvalidConfiguration("This library is not suitable for Windows/Macos")
+            print("For Windows/Macos the library will be mocked.")
 
     def source(self):
-        git = tools.Git()
-        git.clone("https://github.com/WiringPi/WiringPi.git", branch="master")
-        #git.checkout(self.version)
-        if self.options.skipHWDetectionRPIModel3:
-            tools.patch(".", "pi3_patch_detect.patch")
-            self.output.warn("Patched to skip hardware detection, always RPI3 Model B")
+        if not self.settings.os in ("Windows", "Macos"):
+            git = tools.Git()
+            git.clone("https://github.com/WiringPi/WiringPi.git",
+                      branch="master")
+            #git.checkout(self.version)
+            if self.options.skipHWDetectionRPIModel3:
+                tools.patch(".", "pi3_patch_detect.patch")
+                self.output.warn(
+                    "Patched to skip hardware detection, always RPI3 Model B")
 
     def _configure_cmake(self):
-        cmake = CMake(self)
-        if self.options.wpiExtensions:
-            cmake.definitions["WITH_WPI_EXTENSIONS"] = "ON"
-        if self.options.withDevLib:
-            cmake.definitions["WITH_DEV_LIB"] = "ON"
-        cmake.configure()
+        if self.settings.os in ("Windows", "Macos"):
+            cmake = CMake(self)
+            cmake.configure(source_folder="mock")
+        else:
+            cmake = CMake(self)
+            if self.options.wpiExtensions:
+                cmake.definitions["WITH_WPI_EXTENSIONS"] = "ON"
+            if self.options.withDevLib:
+                cmake.definitions["WITH_DEV_LIB"] = "ON"
+            cmake.configure()
         return cmake
 
     def build(self):
@@ -54,15 +70,25 @@ class WiringpiConan(ConanFile):
         cmake.build()
 
     def package(self):
-        self.copy("COPYING*", src="wiringPi", dst="licenses", keep_path=False)
-        cmake = self._configure_cmake()
-        cmake.install()
+        if not self.settings.os in ("Windows", "Macos"):
+            self.copy("COPYING*", src="wiringPi", dst="licenses", keep_path=False)
+            cmake = self._configure_cmake()
+            cmake.install()
+        else:
+            self.copy("COPYING*", src="wiringPi", dst="licenses", keep_path=False)
+            self.copy("*.h", dst="include", src="mock")
+            self.copy("*.lib", dst="lib", keep_path=False)
+            self.copy("*.dll", dst="bin", keep_path=False)
+            self.copy("*.so", dst="lib", keep_path=False)
+            self.copy("*.dylib", dst="lib", keep_path=False)
+            self.copy("*.a", dst="lib", keep_path=False)
 
     def package_info(self):
         self.cpp_info.libs = ["wiringPi"]
-        if self.options.withDevLib:
-            self.cpp_info.libs.append("wiringPiDevLib")
-        self.cpp_info.libs.append("pthread")
-        if self.options.wpiExtensions:
-            self.cpp_info.libs.append("crypt")
-        self.cpp_info.libs.extend(["m", "rt"])
+        if not self.settings.os in ("Windows", "Macos"):
+            if self.options.withDevLib:
+                self.cpp_info.libs.append("wiringPiDevLib")
+            self.cpp_info.libs.append("pthread")
+            if self.options.wpiExtensions:
+                self.cpp_info.libs.append("crypt")
+            self.cpp_info.libs.extend(["m", "rt"])
