@@ -30,19 +30,18 @@ class WiringpiConan(ConanFile):
     }
     # the library doesn't manage very well other than raspbian so the skipHWDetectionRPIModel3
     # will force using original RPI3 Model B, 1GB RAM
-    exports_sources = "CMakeLists.txt", "*.patch"
+    exports_sources = "CMakeLists.txt", "*.patch", "mock/*"
     exports = "LICENSE"
     generators = "cmake"
-    exports_sources = ["mock/*"]
     is_raspberry = True
 
     def configure(self):
         self.is_raspberry = True if "arm" in self.settings.arch else False
         del self.settings.compiler.libcxx
         if not self.is_raspberry:
-            print("For Windows/Macos the library will be mocked.")
+            self.output.warn("For Windows/Macos the library will be mocked.")
         else:
-            print("Building for Raspberry Pi.")
+            self.output.warn("Building for Raspberry Pi.")
 
     def source(self):
         if self.is_raspberry:
