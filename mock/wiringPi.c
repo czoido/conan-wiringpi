@@ -13,11 +13,10 @@
 
 void _sleep(int sleepMs)
 {
-#ifdef __APPLE__
-    usleep(sleepMs * 1000);   // usleep takes sleep time in us (1 millionth of a second)
-#endif
 #ifdef WINDOWS
     Sleep(sleepMs);
+#else
+    usleep(sleepMs * 1000);   // usleep takes sleep time in us (1 millionth of a second)
 #endif
 }
 
