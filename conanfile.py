@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from conans import ConanFile, CMake, tools
 from conans.errors import ConanInvalidConfiguration
-import shutil
+import shutil, platform
 
 
 class WiringpiConan(ConanFile):
@@ -35,14 +35,15 @@ class WiringpiConan(ConanFile):
     exports = "LICENSE"
     generators = "cmake"
     exports_sources = ["mock/*"]
+    is_raspberry = True if "arm" in platform.machine() else False
 
     def configure(self):
         del self.settings.compiler.libcxx
-        if self.settings.os in ("Windows", "Macos"):
+        if not self.is_raspberry:
             print("For Windows/Macos the library will be mocked.")
 
     def source(self):
-        if not self.settings.os in ("Windows", "Macos"):
+        if self.is_raspberry:
             git = tools.Git()
             git.clone("https://github.com/WiringPi/WiringPi.git",
                       branch="master")
@@ -53,7 +54,7 @@ class WiringpiConan(ConanFile):
                     "Patched to skip hardware detection, always RPI3 Model B")
 
     def _configure_cmake(self):
-        if self.settings.os in ("Windows", "Macos"):
+        if not self.is_raspberry:
             cmake = CMake(self)
             cmake.configure(source_folder="mock")
         else:
@@ -70,7 +71,7 @@ class WiringpiConan(ConanFile):
         cmake.build()
 
     def package(self):
-        if not self.settings.os in ("Windows", "Macos"):
+        if self.is_raspberry:
             self.copy("COPYING*", src="wiringPi", dst="licenses", keep_path=False)
             cmake = self._configure_cmake()
             cmake.install()
@@ -85,7 +86,7 @@ class WiringpiConan(ConanFile):
 
     def package_info(self):
         self.cpp_info.libs = ["wiringPi"]
-        if not self.settings.os in ("Windows", "Macos"):
+        if self.is_raspberry:
             if self.options.withDevLib:
                 self.cpp_info.libs.append("wiringPiDevLib")
             self.cpp_info.libs.append("pthread")
