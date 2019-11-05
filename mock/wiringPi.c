@@ -3,20 +3,19 @@
 */
 
 #include <stdio.h>
-#ifdef __APPLE__
-#include <unistd.h>
-#endif
 #ifdef WINDOWS
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
 #include "wiringPi.h"
 
 void _sleep(int sleepMs)
 {
 #ifdef WINDOWS
-    Sleep(sleepMs);
+  Sleep(sleepMs);
 #else
-    usleep(sleepMs * 1000);   // usleep takes sleep time in us (1 millionth of a second)
+  usleep(sleepMs * 1000); // usleep takes sleep time in us (1 millionth of a second)
 #endif
 }
 
