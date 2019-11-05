@@ -35,9 +35,10 @@ class WiringpiConan(ConanFile):
     exports = "LICENSE"
     generators = "cmake"
     exports_sources = ["mock/*"]
-    is_raspberry = True if "arm" in platform.machine() else False
+    is_raspberry = True
 
     def configure(self):
+        self.is_raspberry = True if "arm" in self.settings.arch else False
         del self.settings.compiler.libcxx
         if not self.is_raspberry:
             print("For Windows/Macos the library will be mocked.")
