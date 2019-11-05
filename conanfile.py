@@ -34,8 +34,8 @@ class WiringpiConan(ConanFile):
 
     def source(self):
         git = tools.Git()
-        git.clone("git://git.drogon.net/wiringPi", branch="master")
-        git.checkout(self.version)
+        git.clone("https://github.com/WiringPi/WiringPi.git", branch="master")
+        #git.checkout(self.version)
         if self.options.skipHWDetectionRPIModel3:
             tools.patch(".", "pi3_patch_detect.patch")
             self.output.warn("Patched to skip hardware detection, always RPI3 Model B")
