@@ -4,4 +4,4 @@ project(wiringPi C)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
-add_library(wiringpi wiringPi.c)
+add_library(wiringPi wiringPi.c)
