@@ -1,3 +1,4 @@
 *.pyc
 test_package/build
 *.db
+.vscode/settings.json

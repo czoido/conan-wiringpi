@@ -44,15 +44,14 @@ class WiringpiConan(ConanFile):
             self.output.warn("Building for Raspberry Pi.")
 
     def source(self):
-        if self.is_raspberry:
-            git = tools.Git()
-            git.clone("https://github.com/WiringPi/WiringPi.git",
-                      branch="master")
-            #git.checkout(self.version)
-            if self.options.skipHWDetectionRPIModel3:
-                tools.patch(".", "pi3_patch_detect.patch")
-                self.output.warn(
-                    "Patched to skip hardware detection, always RPI3 Model B")
+        git = tools.Git()
+        git.clone("https://github.com/WiringPi/WiringPi.git",
+                    branch="master")
+        #git.checkout(self.version)
+        if self.options.skipHWDetectionRPIModel3:
+            tools.patch(".", "pi3_patch_detect.patch")
+            self.output.warn(
+                "Patched to skip hardware detection, always RPI3 Model B")
 
     def _configure_cmake(self):
         if not self.is_raspberry:
