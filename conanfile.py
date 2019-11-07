@@ -39,7 +39,7 @@ class WiringpiConan(ConanFile):
         self.is_raspberry = True if "arm" in self.settings.arch else False
         del self.settings.compiler.libcxx
         if not self.is_raspberry:
-            self.output.warn("For Windows/Macos the library will be mocked.")
+            self.output.warn("For using outside the RPi the library will be mocked.")
         else:
             self.output.warn("Building for Raspberry Pi.")
 
